@@ -239,3 +239,50 @@ def alerts():
             'message': 'Alert created successfully',
             'alert': alert.to_dict()
         }, 201
+
+
+@admin_bp.route('/reports/export', methods=['GET'])
+@login_required
+@admin_required
+def export_reports():
+    """Export all disaster reports as CSV"""
+    import csv
+    from io import StringIO
+    from flask import make_response
+    
+    reports = DisasterReport.query.order_by(DisasterReport.created_at.desc()).all()
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    writer.writerow([
+        'ID', 'Title', 'Description', 'Location', 'Latitude', 'Longitude',
+        'Severity', 'Status', 'Reporter', 'Reporter Email', 'Reporter Phone',
+        'Volunteer Tasks', 'Created At', 'Updated At', 'Resolved At'
+    ])
+    
+    for report in reports:
+        volunteer_count = len(report.volunteer_tasks)
+        writer.writerow([
+            report.id,
+            report.title,
+            report.description,
+            report.location,
+            report.latitude,
+            report.longitude,
+            report.severity.value,
+            report.status.value,
+            report.reporter.name if report.reporter else 'Unknown',
+            report.reporter.email if report.reporter else 'Unknown',
+            report.reporter.phone if report.reporter else 'Unknown',
+            volunteer_count,
+            report.created_at.isoformat(),
+            report.updated_at.isoformat(),
+            report.resolved_at.isoformat() if report.resolved_at else 'Not resolved'
+        ])
+    
+    response = make_response(output.getvalue())
+    response.headers['Content-Disposition'] = 'attachment; filename=disaster_reports_log.csv'
+    response.headers['Content-Type'] = 'text/csv'
+    
+    return response

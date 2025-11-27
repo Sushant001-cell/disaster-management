@@ -61,13 +61,20 @@ def create_app(config_name='development'):
     CORS(app, resources={r"/api/*": {"origins": "*"}})
     db.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
     socketio.init_app(app, cors_allowed_origins='*')
     
     # User loader for Flask-Login
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, int(user_id))
+    
+    # Custom unauthorized handler - returns 401 for all requests (no redirects)
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        from flask import jsonify, redirect, url_for
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Unauthorized - please login'}), 401
+        return redirect(url_for('auth.login', next=request.url))
     
     # Register blueprints
     from routes import auth_bp, admin_bp, citizen_bp, volunteer_bp, api_bp

@@ -12,6 +12,7 @@ import traceback
 from logging.handlers import RotatingFileHandler
 from flask import jsonify, request
 from werkzeug.exceptions import HTTPException
+from flask_login import current_user
 
 
 def register_error_handlers(app):
@@ -30,6 +31,10 @@ def register_error_handlers(app):
     if not any(isinstance(h, RotatingFileHandler) and getattr(h, 'baseFilename', None) == log_file for h in app.logger.handlers):
         app.logger.addHandler(handler)
 
+
+    @app.errorhandler(401)
+    def handle_unauthorized(e):
+        return jsonify({'error': 'Unauthorized - please login'}), 401
 
     @app.errorhandler(Exception)
     def handle_exception(e):
