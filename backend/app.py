@@ -74,7 +74,7 @@ def create_app(config_name='development'):
         from flask import jsonify, redirect, url_for
         if request.path.startswith('/api/'):
             return jsonify({'error': 'Unauthorized - please login'}), 401
-        return redirect(url_for('auth.login', next=request.url))
+        return redirect(url_for('serve_index'))
     
     # Register blueprints
     from routes import auth_bp, admin_bp, citizen_bp, volunteer_bp, api_bp
