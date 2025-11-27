@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Disaster Management System</span>
+                </div>
+                <div id="navMenu" class="nav-menu">
+                    <a href="#" class="nav-link" onclick="navigateTo('home')">Home</a>
+                    <a href="#" class="nav-link" onclick="navigateTo('alerts')">Alerts</a>
+                    <a href="#" class="nav-link" onclick="navigateTo('disasters')">Active Disasters</a>
+                    <div class="nav-divider"></div>
+                    <a href="#" id="authLink" class="nav-link nav-auth">Sign In</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Section -->
+            <section id="home" class="section active">
+                <div class="hero">
+                    <h1>Disaster Management & Response System</h1>
+                    <p>Real-time alerts, resource coordination, and volunteer management</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" onclick="navigateTo('disasters')">View Active Disasters</button>
+                        <button class="btn btn-secondary" onclick="showModal('reportModal')">Report Incident</button>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statActive">--</h3>
+                            <p>Active Reports</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statVolunteers">--</h3>
+                            <p>Active Volunteers</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-box"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statResources">--</h3>
+                            <p>Resources Available</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statResolved">--</h3>
+                            <p>Resolved Cases</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Disasters Section -->
+            <section id="disasters" class="section">
+                <div class="section-header">
+                    <h2>Active Disasters</h2>
+                    <button class="btn btn-small" onclick="loadDisasters()"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                <div id="disastersList" class="disasters-grid">
+                    <p class="loading">Loading disasters...</p>
+                </div>
+            </section>
+
+            <!-- Alerts Section -->
+            <section id="alerts" class="section">
+                <div class="section-header">
+                    <h2>Recent Alerts</h2>
+                </div>
+                <div id="alertsList" class="alerts-list">
+                    <p class="loading">Loading alerts...</p>
+                </div>
+            </section>
+
+            <!-- Dashboard (logged in users) -->
+            <section id="dashboard" class="section">
+                <div class="dashboard-grid">
+                    <div id="dashboardContent">Loading...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Auth Modals -->
+    <div id="authModal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Sign In</h2>
+                <button class="modal-close" onclick="closeModal('authModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="auth-tabs">
+                    <button class="tab-btn active" onclick="switchTab('login', event)">Login</button>
+                    <button class="tab-btn" onclick="switchTab('signup', event)">Sign Up</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form active">
+                    <input type="email" placeholder="Email" id="loginEmail" required>
+                    <input type="password" placeholder="Password" id="loginPassword" required>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signupForm" class="auth-form">
+                    <input type="text" placeholder="Full Name" id="signupName" required>
+                    <input type="email" placeholder="Email" id="signupEmail" required>
+                    <input type="password" placeholder="Password" id="signupPassword" required>
+                    <input type="tel" placeholder="Phone" id="signupPhone">
+                    <select id="signupRole" required>
+                        <option value="">Select Role</option>
+                        <option value="CITIZEN">Citizen</option>
+                        <option value="VOLUNTEER">Volunteer</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Report Incident</h2>
+                <button class="modal-close" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reportForm">
+                    <input type="text" placeholder="Incident Title" id="reportTitle" required>
+                    <textarea placeholder="Description" id="reportDescription" rows="4" required></textarea>
+                    <input type="text" placeholder="Location" id="reportLocation" required>
+                    <input type="number" placeholder="Latitude" id="reportLat" step="0.0001">
+                    <input type="number" placeholder="Longitude" id="reportLng" step="0.0001">
+                    <select id="reportSeverity" required>
+                        <option value="">Select Severity</option>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="CRITICAL">Critical</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Submit Report</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
